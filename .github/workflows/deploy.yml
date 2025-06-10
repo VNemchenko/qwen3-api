@@ -13,6 +13,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Debug DEPLOY_KEY presence
+        run: |
+          if [ -z "${{ secrets.DEPLOY_KEY }}" ]; then
+            echo "❌ DEPLOY_KEY is missing or empty"
+            exit 1
+          else
+            echo "✅ DEPLOY_KEY is set"
+          fi
+
+
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
