@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  qwen3-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=${MODEL_PATH}
+      - MODEL_URL=${MODEL_URL}
+      - API_KEY=${API_KEY}
+    volumes:
+      - /opt/models:/models
+    restart: unless-stopped
