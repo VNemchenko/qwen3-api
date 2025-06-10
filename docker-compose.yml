@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   qwen3-api:
     build: .

@@ -19,7 +19,7 @@ ENV CMAKE_GENERATOR=Ninja
 COPY requirements.txt .
 
 # Устанавливаем llama-cpp-python с CPU-бэкендом отдельно
-RUN pip install llama-cpp-python[server] --config-settings=llama-cpp:llama_backend=cpu && \
+RUN pip install llama-cpp-python[server] && \
     pip install -r requirements.txt
 
 # Копируем остальной проект
