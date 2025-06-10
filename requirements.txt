@@ -1,4 +1,3 @@
-llama-cpp-python[server]
 fastapi
 uvicorn
 python-dotenv
