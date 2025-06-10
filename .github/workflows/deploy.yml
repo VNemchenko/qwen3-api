@@ -1,4 +1,4 @@
-name: Deploy Anti-Anxiety Bot
+name: Deploy Qwen3-API
 
 on:
   push:
@@ -18,9 +18,10 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
-      - name: Create .env file with BOT_TOKEN
+      - name: Create .env file with API_KEY and MODEL_URL
         run: |
-          echo "BOT_TOKEN=${{ secrets.PROD_TELEGRAM_BOT_TOKEN }}" > .env
+          echo "API_KEY=${{ secrets.API_KEY }}" > .env
+          echo "MODEL_URL=${{ vars.MODEL_URL }}" >> .env
 
       - name: Add server to known_hosts
         run: |
@@ -28,12 +29,12 @@ jobs:
 
       - name: Copy files to server
         run: |
-          scp -r . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/anti_anxiety_bot/
+          scp -r . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/qwen3-api/
 
-      - name: Restart bot via SSH
+      - name: Restart API container via SSH
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cd /var/www/anti_anxiety_bot
+            cd /var/www/qwen3-api
             docker compose down
             docker compose build
             docker compose up -d
