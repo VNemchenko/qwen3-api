@@ -35,6 +35,20 @@ def verify_token(request: Request):
 
     logger.info("Token verified successfully")
 
+@app.get("/v1/models")
+async def list_models(authorized: None = Depends(verify_token)):
+    return {
+        "object": "list",
+        "data": [
+            {
+                "id": "qwen3",
+                "object": "model",
+                "owned_by": "Vitaliy Nemchenko"
+            }
+        ]
+    }
+
+
 @app.post("/v1/chat/completions")
 async def chat(request: Request, authorized: None = Depends(verify_token)):
     body = await request.json()
