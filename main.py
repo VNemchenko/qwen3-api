@@ -73,11 +73,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
                         messages=messages,
                         temperature=temperature,
                         max_tokens=max_tokens,
-                        stream=True,
-                        TopP=0.95,
-                        TopK=20,
-                        MinP=0,
-                        PresencePenalty=1.5
+                        stream=True
                     ):
                         yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
                 except Exception as exc:
