@@ -71,7 +71,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
     try:
         logger.info("Generating completion with %d message(s)", len(messages))
 
-        if stream:
+        if False and stream:
             def event_stream():
                 try:
                     for chunk in llm.create_chat_completion(
