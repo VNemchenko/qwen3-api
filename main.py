@@ -67,7 +67,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
                 if "content" in msg:
                     msg["content"] = remove_think_blocks(msg["content"])
 
-        logger.info("Returning cleaned completion result")
+        logger.info("Returning cleaned completion result", result)
         return JSONResponse(content=result)
 
     except Exception as e:
