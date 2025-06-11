@@ -1,0 +1,9 @@
+curl http://95.165.73.39:8001/v1/chat/completions \
+  -H "Authorization: Bearer SUPERSECRET" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen",
+    "messages": [
+      {"role": "user", "content": "Привет"}
+    ]
+  }'
