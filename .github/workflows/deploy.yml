@@ -3,7 +3,7 @@ name: Deploy Qwen3-API
 on:
   push:
     tags:
-      - 'v*'  # только теги вида v1.0, v2.3 и т.п.
+      - 'v*'  # Только теги вида v1.0, v2.3 и т.п.
 
 jobs:
   deploy:
@@ -20,28 +20,35 @@ jobs:
           chmod 600 /tmp/deploy_key
           ssh-add /tmp/deploy_key
 
-      - name: Create .env file with secrets and variables
+      - name: Test SSH connection
+        run: |
+          echo "🔐 Testing SSH connection..."
+          ssh -v -o StrictHostKeyChecking=no -i /tmp/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo ✅ SSH connection successful"
+
+      - name: Create .env file
         run: |
           echo "API_KEY=${{ secrets.API_KEY }}" > .env
           echo "MODEL_URL=${{ vars.MODEL_URL }}" >> .env
 
-      - name: Add server to known_hosts
+      - name: Upload code to server via rsync
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          echo "📦 Syncing code to server..."
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key" . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/qwen3-api/
 
-      - name: Copy files to server
+      - name: Restart container on server
         run: |
-          scp -r . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/qwen3-api/
-
-      - name: Restart API container via SSH
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          echo "🚀 Restarting API..."
+          ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            set -e
             cd /var/www/qwen3-api
-            docker compose down
+            docker compose down || true
             docker compose build
             docker compose up -d
           EOF
 
       - name: Stop SSH agent
         run: ssh-agent -k
+
+      - name: ✅ Done
+        run: echo "🎉 Deployment complete!"
+
