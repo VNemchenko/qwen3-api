@@ -39,7 +39,7 @@ def verify_token(request: Request):
 async def chat(request: Request, authorized: None = Depends(verify_token)):
     body = await request.json()
     logger.info("Received chat request")
-    logger.debug("Request body: %s", body)
+    logger.info("Request body: %s", body)
 
     messages = body.get("messages", [])
     temperature = body.get("temperature", 0.7)
@@ -59,6 +59,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
             max_tokens=max_tokens,
         )
         logger.debug("Raw model result: %s", result)
+        logger.info("Model response: %s", result)
 
         # 👇 чистим content от <think>...</think>
         if "choices" in result:
