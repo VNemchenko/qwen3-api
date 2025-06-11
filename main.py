@@ -52,7 +52,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
     logger.info("Request body: %s", body)
 
     messages = body.get("messages", [])
-    temperature = body.get("temperature", 0.7)
+    temperature = body.get("temperature", 0.6)
     max_tokens = body.get("max_tokens", 32768)
     stream = body.get("stream", False)
     logger.info(
@@ -74,8 +74,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
                         temperature=temperature,
                         max_tokens=max_tokens,
                         stream=True,
-                        enable_thinking=False,
-                        TopP=0.8,
+                        TopP=0.95,
                         TopK=20,
                         MinP=0,
                         PresencePenalty=1.5
