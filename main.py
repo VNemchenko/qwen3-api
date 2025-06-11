@@ -75,15 +75,10 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
         logger.info("Model response: %s", result)
 
         # 👇 чистим content от <think>...</think>
-        if "choices" in result:
-            for choice in result["choices"]:
-                msg = choice.get("message", {})
-                if "content" in msg:
-                    msg["content"] = remove_think_blocks(msg["content"])
-
-        logger.info("Returning cleaned completion result: %s", result)
-        return JSONResponse(content=result)
+        answer = remove_think_blocks(result.choices[0].message.content)
+        logger.info("Returning cleaned completion answer: %s", answer)
+        return answer
 
     except Exception as e:
         logger.exception("Error during chat completion")
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return f"error {e}"
