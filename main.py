@@ -23,7 +23,7 @@ def remove_think_blocks(text: str) -> str:
 
 def verify_token(request: Request):
     auth = request.headers.get("Authorization", "")
-    logger.debug("Authorization header received: %s", auth)
+    logger.info("Authorization header received: %s", auth)
     if not auth.startswith("Bearer "):
         logger.warning("Missing or malformed Authorization header")
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -33,7 +33,7 @@ def verify_token(request: Request):
         logger.warning("Invalid API token provided")
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    logger.debug("Token verified successfully")
+    logger.info("Token verified successfully")
 
 @app.post("/v1/chat/completions")
 async def chat(request: Request, authorized: None = Depends(verify_token)):
@@ -44,7 +44,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
     messages = body.get("messages", [])
     temperature = body.get("temperature", 0.7)
     max_tokens = body.get("max_tokens", 1024)
-    logger.debug(
+    logger.info(
         "messages=%s temperature=%s max_tokens=%s",
         messages,
         temperature,
@@ -58,7 +58,6 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
             temperature=temperature,
             max_tokens=max_tokens,
         )
-        logger.debug("Raw model result: %s", result)
         logger.info("Model response: %s", result)
 
         # 👇 чистим content от <think>...</think>
