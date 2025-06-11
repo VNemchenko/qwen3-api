@@ -3,7 +3,7 @@ name: Deploy Qwen3-API
 on:
   push:
     tags:
-      - 'v*'  # Только теги вида v1.0, v2.3 и т.п.
+      - 'v*'  # теги вида v1.0, v2.3 и т.п.
 
 jobs:
   deploy:
@@ -15,6 +15,7 @@ jobs:
 
       - name: Start SSH agent and add key
         run: |
+          echo "🟡 Starting ssh-agent"
           eval "$(ssh-agent -s)"
           echo "${{ secrets.DEPLOY_KEY }}" > /tmp/deploy_key
           chmod 600 /tmp/deploy_key
@@ -22,8 +23,8 @@ jobs:
 
       - name: Test SSH connection
         run: |
-          echo "🔐 Testing SSH connection..."
-          ssh -v -o StrictHostKeyChecking=no -i /tmp/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo ✅ SSH connection successful"
+          echo "🟢 Testing SSH connection..."
+          ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo ✅ SSH OK"
 
       - name: Create .env file
         run: |
@@ -32,12 +33,12 @@ jobs:
 
       - name: Upload code to server via rsync
         run: |
-          echo "📦 Syncing code to server..."
+          echo "📦 Uploading code via rsync..."
           rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key" . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/var/www/qwen3-api/
 
       - name: Restart container on server
         run: |
-          echo "🚀 Restarting API..."
+          echo "🔁 Restarting Docker Compose on server..."
           ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             set -e
             cd /var/www/qwen3-api
@@ -46,9 +47,15 @@ jobs:
             docker compose up -d
           EOF
 
-      - name: Stop SSH agent
-        run: ssh-agent -k
+      - name: Stop SSH agent (optional)
+        continue-on-error: true
+        run: |
+          echo "🔚 Stopping ssh-agent (if running)..."
+          if [ -n "$SSH_AGENT_PID" ]; then
+            ssh-agent -k
+          else
+            echo "No SSH_AGENT_PID set"
+          fi
 
       - name: ✅ Done
-        run: echo "🎉 Deployment complete!"
-
+        run: echo "🎉 Deployment completed successfully!"
