@@ -41,7 +41,7 @@ async def list_models(authorized: None = Depends(verify_token)):
         "object": "list",
         "data": [
             {
-                "id": "qwen3",
+                "id": "/models/Qwen3-0.6B-Q8_0.gguf",
                 "object": "model",
                 "owned_by": "Vitaliy Nemchenko"
             }
