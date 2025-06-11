@@ -1,4 +1,3 @@
-import re
 import json
 import logging
 from fastapi import FastAPI, Request, HTTPException, Depends
@@ -16,11 +15,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 logger.info("Loading model from %s", MODEL_PATH)
 llm = Llama(model_path=MODEL_PATH, chat_format="chatml", n_ctx=4096)
-logger.info("Model loaded successfully")
-
-def remove_think_blocks(text: str) -> str:
-    """Удаляет всё между <think>...</think> включая сами теги."""
-    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+logger.info("Model loaded successfully: %s", llm)
 
 def verify_token(request: Request):
     auth = request.headers.get("Authorization", "")
@@ -58,7 +53,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
 
     messages = body.get("messages", [])
     temperature = body.get("temperature", 0.7)
-    max_tokens = body.get("max_tokens", 1024)
+    max_tokens = body.get("max_tokens", 32768)
     stream = body.get("stream", False)
     logger.info(
         "messages=%s temperature=%s max_tokens=%s stream=%s",
@@ -71,7 +66,7 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
     try:
         logger.info("Generating completion with %d message(s)", len(messages))
 
-        if False and stream:
+        if stream:
             def event_stream():
                 try:
                     for chunk in llm.create_chat_completion(
@@ -79,12 +74,12 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
                         temperature=temperature,
                         max_tokens=max_tokens,
                         stream=True,
+                        enable_thinking=False,
+                        TopP=0.8,
+                        TopK=20,
+                        MinP=0,
+                        PresencePenalty=1.5
                     ):
-                        if "choices" in chunk:
-                            for choice in chunk["choices"]:
-                                msg = choice.get("delta", {})
-                                if "content" in msg:
-                                    msg["content"] = remove_think_blocks(msg["content"])
                         yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
                 except Exception as exc:
                     logger.exception("Error during streaming chat completion")
@@ -99,15 +94,6 @@ async def chat(request: Request, authorized: None = Depends(verify_token)):
             max_tokens=max_tokens,
         )
         logger.info("Model response: %s", result)
-
-        # 👇 чистим content от <think>...</think>
-        if "choices" in result:
-            for choice in result["choices"]:
-                msg = choice.get("message", {})
-                if "content" in msg:
-                    msg["content"] = remove_think_blocks(msg["content"])
-
-        logger.info("Returning cleaned completion result: %s", result)
         return JSONResponse(content=result)
 
     except Exception as e:
