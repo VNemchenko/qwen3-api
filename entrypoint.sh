@@ -1,5 +1,15 @@
 #!/bin/bash
 set -e
+set -o pipefail
+
+echo "[entrypoint] Starting container" 
+echo "[entrypoint] MODEL_PATH: ${MODEL_PATH:-not set}" 
+echo "[entrypoint] MODEL_URL: ${MODEL_URL:-not set}" 
+if [ -n "${API_KEY}" ]; then
+  echo "[entrypoint] API_KEY is set"
+else
+  echo "[entrypoint] WARNING: API_KEY is not set"
+fi
 
 if [ -z "$MODEL_PATH" ]; then
   MODEL_FILENAME=$(basename "$MODEL_URL")
